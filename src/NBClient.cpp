@@ -35,7 +35,9 @@ enum {
   CLIENT_STATE_WAIT_CONNECT_RESPONSE,
   CLIENT_STATE_CLOSE_SOCKET,
   CLIENT_STATE_WAIT_CLOSE_SOCKET,
-  CLIENT_STATE_RETRIEVE_ERROR
+  CLIENT_STATE_RETRIEVE_ERROR,
+  CLIENT_STATE_SET_NO_DELAY,
+  CLIENT_STATE_WAIT_SET_NO_DELAY_RESPONSE
 };
 
 NBClient::NBClient(bool synch) :
@@ -158,7 +160,8 @@ int NBClient::ready()
         ready = 0;
       } else {
         _connected = true;
-        _state = CLIENT_STATE_IDLE;
+        //_state = CLIENT_STATE_IDLE;
+        _state = CLIENT_STATE_SET_NO_DELAY;
       }
       break;
     }
@@ -181,6 +184,24 @@ int NBClient::ready()
     case CLIENT_STATE_RETRIEVE_ERROR: {
       MODEM.send("AT+USOER");
       _state = CLIENT_STATE_IDLE;
+      break;
+    }
+
+    case CLIENT_STATE_SET_NO_DELAY: {
+
+      MODEM.sendf("AT+USOSO=%d,6,1,1", _socket);
+
+      _state = CLIENT_STATE_WAIT_SET_NO_DELAY_RESPONSE;
+      ready = 0;
+
+      break;
+    }
+
+    case CLIENT_STATE_WAIT_SET_NO_DELAY_RESPONSE: {
+
+      _state = CLIENT_STATE_IDLE;
+      ready = 0;
+
       break;
     }
   }
