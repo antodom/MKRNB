@@ -198,10 +198,13 @@ int NBClient::ready()
     }
 
     case CLIENT_STATE_WAIT_SET_NO_DELAY_RESPONSE: {
+      if (ready > 1) {
+        _state = CLIENT_STATE_CLOSE_SOCKET;
 
-      _state = CLIENT_STATE_IDLE;
-      ready = 0;
-
+        ready = 0;
+      } else {
+        _state = CLIENT_STATE_IDLE;
+      }
       break;
     }
   }
